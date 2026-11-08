@@ -1,0 +1,47 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+      
+      - name: Unzip Project
+        run: unzip my_app.zip
+        
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'  # Use an exact version instead of a channel
+          cache: true
+          
+      - name: Get Dependencies
+        run: |
+          cd my_app
+          flutter pub get
+          
+      - name: Build APK
+        run: |
+          cd my_app
+          flutter build apk --debug
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-app-apk
+          path: my_app/build/app/outputs/flutter-apk/app-debug.apk
